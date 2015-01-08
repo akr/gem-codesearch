@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require 'rbconfig'
+
+RAKE_COMMAND = "#{RbConfig::CONFIG["bindir"]}/rake"
+topdir = File.dirname(File.dirname(__FILE__))
+RAKEFILE = topdir + "/Rakefile"
+
+system RAKE_COMMAND, '-f', RAKEFILE, *ARGV
