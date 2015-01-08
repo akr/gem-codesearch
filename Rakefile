@@ -29,7 +29,7 @@ file ".gem/.mirrorrc" do |t|
   FileUtils.mkpath File.dirname(t.name)
   File.write(t.name, <<"End")
 ---
-- from: http://rubygems.org/
+- from: http://production.s3.rubygems.org
   to: #{MIRROR_DIR}
 End
 end
