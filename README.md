@@ -29,6 +29,11 @@ After the index is created, enjoy code search.
     % cd gem-codesearch
     % rake all >& setup.log             # It may take several days or more
 
+## Links
+
+- https://github.com/akr/gem-codesearch
+- https://rubygems.org/gems/gem-codesearch
+
 ## Author
 
 Tanaka Akira
