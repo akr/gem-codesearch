@@ -5,12 +5,20 @@ It use rubygems-mirror to mirror rubygems and milkode for search engine.
 
 ## Usage
 
+This creates "latest-gem" package in milkode index.
+
     % gem install gem-codesearch
     % milk init --default               # If you use milkode first time
     % mkdir $HOME/gem-codesearch        # Make a some directory
     % cd $HOME/gem-codesearch
     % gem-codesearch-setup all >& setup.log # It may take several days or more
-    % gmilk -p latest-gem sort_by       # Enjoy code search
+
+If "gem-codesearch-setup all" fails due to network or server errors,
+try again.
+
+After the index is created, enjoy code search.
+
+    % gmilk -p latest-gem sort_by
 
 ## Usage without install
 
@@ -20,7 +28,6 @@ It use rubygems-mirror to mirror rubygems and milkode for search engine.
     % git clone https://github.com/akr/gem-codesearch.git
     % cd gem-codesearch
     % rake all >& setup.log             # It may take several days or more
-    % gmilk -p latest-gem sort_by       # Enjoy code search
 
 ## Author
 
