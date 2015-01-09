@@ -10,9 +10,12 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'rake', '~> 10.4', '>= 10.4.2'
   s.executables << 'gem-codesearch-setup'
   s.files = %w[
+    .gitignore
+    LICENSE
     README.md
     Rakefile
     bin/gem-codesearch-setup
+    gem-codesearch.gemspec
   ]
   s.homepage = 'https://github.com/akr/gem-codesearch'
   s.license = 'MIT'
