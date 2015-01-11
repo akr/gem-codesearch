@@ -18,26 +18,29 @@ end
 
 task :all => [:mirror, :unpack, :index]
 
-MIRROR_DIR = "#{Dir.pwd}/mirror"
-LATEST_DIR = "#{Dir.pwd}/latest-gem"
-LOG_DIR = "#{Dir.pwd}/log"
+BASE_DIR = ENV['GEM_CODESEARCH_DIR'] || Dir.pwd
+MIRROR_URL = ENV['GEM_CODESEARCH_URL'] || 'http://rubygems.org/'
+
+MIRROR_DIR = "#{BASE_DIR}/mirror"
+LATEST_DIR = "#{BASE_DIR}/latest-gem"
+LOG_DIR = "#{BASE_DIR}/log"
 
 GEM_COMMAND = "#{RbConfig::CONFIG["bindir"]}/gem"
 MILK_COMMAND = "#{RbConfig::CONFIG["bindir"]}/milk"
 
-file ".gem/.mirrorrc" do |t|
+file "#{BASE_DIR}/.gem/.mirrorrc" do |t|
   FileUtils.mkpath File.dirname(t.name)
   File.write(t.name, <<"End")
 ---
-- from: http://rubygems.org/
+- from: #{MIRROR_URL}
   to: #{MIRROR_DIR}
 End
 end
 
-task :mirror => ".gem/.mirrorrc" do
+task :mirror => "#{BASE_DIR}/.gem/.mirrorrc" do
   FileUtils.mkpath MIRROR_DIR
   # HOME is set because gem mirror reads $HOME/.gem/.mirrorrc.
-  sh "HOME=#{Dir.pwd} #{GEM_COMMAND} mirror --verbose"
+  sh "HOME=#{BASE_DIR} #{GEM_COMMAND} mirror --verbose"
 end
 
 task :unpack do

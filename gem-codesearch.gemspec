@@ -8,6 +8,8 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'rubygems-mirror', '~> 1.0', '>= 1.0.1'
   s.add_runtime_dependency 'milkode', '~> 1.8', '>= 1.8.6'
   s.add_runtime_dependency 'rake', '~> 10.4', '>= 10.4.2'
+  s.add_development_dependency 'builder', '>= 3.2.2'
+  s.add_development_dependency 'test-unit', '>= 3.0.8'
   s.executables << 'gem-codesearch-setup'
   s.files = %w[
     .gitignore
