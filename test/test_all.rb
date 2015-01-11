@@ -27,6 +27,7 @@ class TestGemCodesearch < Test::Unit::TestCase
   end
 
   def start_gem_server
+    # "gem server" serves gem files already installed.
     gem_server_command = [GEM_COMMAND, 'server', '-b', '127.0.0.1', '-p', '0']
     pid = nil
     PTY.open {|m, s|
