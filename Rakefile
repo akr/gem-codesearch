@@ -64,17 +64,16 @@ task :unpack do
   #all_specs = all_specs.reject {|name,version,platform| /\Afoo-/ !~ name }
 
   latest_vnames = []
-  nonlatest_vnames = []
   h = all_specs.group_by {|name,version| name }
   h.each {|name, list|
     list = list.sort_by {|name,version| version }
     vnames = list.map {|name,version| "#{name}-#{version}" }
     latest_vnames << vnames.pop
-    nonlatest_vnames.concat vnames
   }
 
   already_unpacked = Dir.entries(LATEST_DIR)
-  (already_unpacked & nonlatest_vnames).each {|vname|
+  already_unpacked = already_unpacked - %w[. ..]
+  (already_unpacked - latest_vnames).each {|vname|
     puts "remove: #{vname}"
     FileUtils.rmtree("#{LATEST_DIR}/#{vname}")
   }
