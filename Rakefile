@@ -70,12 +70,12 @@ task :unpack do
     list = list.sort_by {|name,version| version }
     vnames = list.map {|name,version| "#{name}-#{version}" }
     latest_vnames << vnames.pop
-    nonlatest_vnames.concat list
+    nonlatest_vnames.concat vnames
   }
 
   already_unpacked = Dir.entries(LATEST_DIR)
   (already_unpacked & nonlatest_vnames).each {|vname|
-    puts "remove: #{vname}
+    puts "remove: #{vname}"
     FileUtils.rmtree("#{LATEST_DIR}/#{vname}")
   }
 
