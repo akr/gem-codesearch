@@ -57,6 +57,7 @@ class TestGemCodesearch < Test::Unit::TestCase
       ENV['GEM_CODESEARCH_DIR'] = @workdir
       system(MILK_COMMAND, 'init', '--default', :out => IO::NULL)
       system(RAKE_COMMAND, '-f', RAKEFILE, 'all', [:out, :err] => IO::NULL)
+      system(RAKE_COMMAND, '-f', RAKEFILE, 'all', [:out, :err] => IO::NULL) # update exisiting index.
     }
   end
 
