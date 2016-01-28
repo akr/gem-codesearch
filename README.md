@@ -3,8 +3,8 @@
 gem-codesearch sets up a full text code search engine on mirror of rubygems.
 It use rubygems-mirror to mirror rubygems and milkode for search engine.
 
-300GB of free disk space is required to store the rubygems mirror,
-unpacked gems and milkode index at 2015-01.
+400GB of free disk space is required to store the rubygems mirror,
+unpacked gems and milkode index at 2016-01.
 It will be larger in future.
 
 ## Usage
