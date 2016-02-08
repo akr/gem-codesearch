@@ -12,7 +12,9 @@ Usage:
   rake all              # mirror, unpack, index
   rake mirror
   rake unpack
-  rake index
+  rake index            # same as index_codesearch
+  rake index_codesearch
+  rake index_milkode
 End
 end
 
@@ -91,7 +93,14 @@ task :unpack do
 
 end
 
-task :index do
+task :index => :index_codesearch
+
+CINDEX_COMMAND = 'cindex'
+task :index_codesearch do
+  system CINDEX_COMMAND, LATEST_DIR
+end
+
+task :index_milkode do
   # Assume default database for milkode is already created.
   # If not, do it as follows:
   #   milk init --default

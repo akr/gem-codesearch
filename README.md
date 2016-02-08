@@ -11,8 +11,8 @@ It will be larger in future.
 
 This creates "latest-gem" package in milkode index.
 
+    % sudo aptitude install codesearch  # https://github.com/google/codesearch
     % gem install gem-codesearch
-    % milk init --default               # If you use milkode first time
     % mkdir $HOME/gem-codesearch        # Make a some directory
     % cd $HOME/gem-codesearch
     % gem-codesearch-setup all >& setup.log # It may take several days or more
@@ -22,16 +22,22 @@ try again to continue.
 
 After the index is created, enjoy code search.
 
-    % gmilk -p latest-gem sort_by
+    % csearch sort_by
 
 ## Usage without install
 
-    % gem install rubygems-mirror milkode
-    % milk init --default               # If you use milkode first time
+    % sudo aptitude install codesearch  # https://github.com/google/codesearch
+    % gem install rubygems-mirror
     % cd $HOME
     % git clone https://github.com/akr/gem-codesearch.git
     % cd gem-codesearch
     % rake all >& setup.log             # It may take several days or more
+
+## Use milkode instead of codesesarch
+
+    % gem install milkode
+    % milk init --default               # If you use milkode first time
+    % rake mirror unpack index_milkode >& setup.log
 
 ## Links
 
