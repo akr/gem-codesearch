@@ -97,7 +97,7 @@ task :index => :index_codesearch
 
 CINDEX_COMMAND = 'cindex'
 task :index_codesearch do
-  system CINDEX_COMMAND, LATEST_DIR
+  sh CINDEX_COMMAND, LATEST_DIR
 end
 
 task :index_milkode do
