@@ -42,7 +42,8 @@ end
 task :mirror => "#{BASE_DIR}/.gem/.mirrorrc" do
   FileUtils.mkpath MIRROR_DIR
   # HOME is set because gem mirror reads $HOME/.gem/.mirrorrc.
-  sh "HOME=#{BASE_DIR} #{GEM_COMMAND} mirror --verbose"
+  env = {"HOME"=>BASE_DIR}
+  sh env, GEM_COMMAND, "mirror", "--verbose"
 end
 
 task :unpack do
@@ -107,9 +108,9 @@ task :index_milkode do
   milkode_package_list = IO.popen([MILK_COMMAND, 'list']) {|f| f.read }
   package_name = File.basename(LATEST_DIR)
   if /^#{Regexp.escape package_name}$/ !~ milkode_package_list
-    system MILK_COMMAND, 'add', '--verbose', LATEST_DIR
+    sh MILK_COMMAND, 'add', '--verbose', LATEST_DIR
   else
-    system MILK_COMMAND, 'update', '--verbose', package_name
+    sh MILK_COMMAND, 'update', '--verbose', package_name
   end
 end
 
