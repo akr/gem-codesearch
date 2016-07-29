@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name = 'gem-codesearch'
-  s.version = '0.2'
-  s.date = '2015-01-13'
+  s.version = '0.3'
+  s.date = '2016-07-29'
   s.author = 'Tanaka Akira'
   s.email = 'akr@fsij.org'
   s.required_ruby_version = '>= 2.2.0'
