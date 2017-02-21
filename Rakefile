@@ -89,6 +89,7 @@ task :unpack do
         puts "failed to unpack #{vname}"
       end
       fix_permission("#{LATEST_DIR}/#{vname}")
+      clean_files("#{LATEST_DIR}/#{vname}")
     }
   }
 
@@ -125,6 +126,18 @@ def fix_permission(dir)
     elsif st.directory?
       if !st.readable? || !st.executable?
         File.chmod(0755, fn)
+      end
+    end
+  }
+end
+
+def clean_files(dir)
+  return unless File.exist? dir
+  Find.find(dir) {|fn|
+    st = File.lstat(fn)
+    if st.file?
+      if fn.end_with?('.ri')
+        File.unlink fn
       end
     end
   }
