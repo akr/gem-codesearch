@@ -36,6 +36,7 @@ file "#{BASE_DIR}/.gem/.mirrorrc" do |t|
 ---
 - from: #{MIRROR_URL}
   to: #{MIRROR_DIR}
+  delete: true
 End
 end
 
