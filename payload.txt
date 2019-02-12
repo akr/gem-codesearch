@@ -1,0 +1,11 @@
+EICAR-0.0.6/bin/eicar.com
+clamd-1.0.1/spec/fixtures/virus
+clamrb-0.0.3/test/files/eicar.txt
+clamav-0.4.1/spec/clamav-testfiles/eicar.com
+clamav-0.4.1/spec/clamav-testfiles/test.txt
+metasploit-payloads-1.3.60/data/java/metasploit/RMILoader.class
+meterpreter_bins-0.0.22/meterpreter/metsrv.x64.dll
+meterpreter_bins-0.0.22/meterpreter/ext_server_priv.x86.dll
+metasploit-payloads-1.3.60/data/java/metasploit/Payload.class
+warp-clamav-0.3.1/spec/clamav-testfiles/eicar.com
+warp-clamav-0.3.1/spec/clamav-testfiles/test.txt
