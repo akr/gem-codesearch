@@ -1,6 +1,8 @@
 require 'rbconfig'
 require 'fileutils'
 require 'find'
+require 'open3'
+require 'pathname'
 require 'pp'
 
 task :default => :help
@@ -140,12 +142,20 @@ def fix_permission(dir)
   }
 end
 
+EXT_NAMES = %w(.rb .ru .gemspec .rake .cmd .gemfile .thor)
 def clean_files(dir)
   return unless File.exist? dir
   Find.find(dir) {|fn|
     st = File.lstat(fn)
     if st.file?
-      if fn.end_with?('.ri')
+      if !(EXT_NAMES.any?{|ext| fn.end_with?(ext)} || Pathname(fn).extname.empty?)
+        File.unlink fn
+        next
+      end
+
+      _, _, _, wait_thr = *Open3.popen3("ruby -c #{fn}")
+      if wait_thr.value.exitstatus != 0
+        puts "removed: #{fn}"
         File.unlink fn
       end
     end
