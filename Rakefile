@@ -142,7 +142,7 @@ def fix_permission(dir)
   }
 end
 
-EXT_NAMES = %w(.rb .ru .gemspec .rake .cmd .gemfile .thor)
+EXT_NAMES = %w(.rb .ru .gemspec .rake .cmd .gemfile .thor .c .h .cpp .hpp)
 def clean_files(dir)
   return unless File.exist? dir
   Find.find(dir) {|fn|
