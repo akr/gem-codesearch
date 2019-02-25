@@ -143,22 +143,25 @@ def fix_permission(dir)
   }
 end
 
-EXT_NAMES = %w(.rb .ru .gemspec .rake .cmd .gemfile .thor .c .h .cpp .hpp)
+RB_EXT_NAMES = %w(.rb .ru .gemspec .rake .cmd .gemfile .thor)
+C_EXT_NAMES = %w(.c .h .cpp .hpp)
 def clean_files(dir)
   return unless File.exist? dir
   Find.find(dir) {|fn|
     st = File.lstat(fn)
     if st.file?
-      if !(EXT_NAMES.any?{|ext| fn.end_with?(ext)} || Pathname(fn).extname.empty?)
+      if C_EXT_NAMES.any?{|ext| fn.end_with?(ext)}
+        next
+      elsif !(EXT_NAMES.any?{|ext| fn.end_with?(ext)} || Pathname(fn).extname.empty?)
         File.unlink fn
         puts "removed: #{fn}"
         next
-      end
-
-      _, _, _, wait_thr = *Open3.popen3("ruby -c #{fn}")
-      if wait_thr.value.exitstatus != 0
-        File.unlink fn
-        puts "removed: #{fn}"
+      else
+        _, _, _, wait_thr = *Open3.popen3("ruby -c #{fn}")
+        if wait_thr.value.exitstatus != 0
+          File.unlink fn
+          puts "removed: #{fn}"
+        end
       end
     end
   }
