@@ -150,13 +150,14 @@ def clean_files(dir)
     if st.file?
       if !(EXT_NAMES.any?{|ext| fn.end_with?(ext)} || Pathname(fn).extname.empty?)
         File.unlink fn
+        puts "removed: #{fn}"
         next
       end
 
       _, _, _, wait_thr = *Open3.popen3("ruby -c #{fn}")
       if wait_thr.value.exitstatus != 0
-        puts "removed: #{fn}"
         File.unlink fn
+        puts "removed: #{fn}"
       end
     end
   }
