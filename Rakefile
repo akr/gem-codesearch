@@ -98,9 +98,10 @@ task :unpack do
 
   File.open("payload.txt") do |f|
     f.each_line do |i|
+      i.chomp!
       if File.exist? i
-        puts "remove: #{i}"
         File.unlink "#{LATEST_DIR}/#{i}"
+        puts "removed: #{i}"
       end
     end
   end
