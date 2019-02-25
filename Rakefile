@@ -152,7 +152,7 @@ def clean_files(dir)
     if st.file?
       if C_EXT_NAMES.any?{|ext| fn.end_with?(ext)}
         next
-      elsif !(EXT_NAMES.any?{|ext| fn.end_with?(ext)} || Pathname(fn).extname.empty?)
+      elsif !(RB_EXT_NAMES.any?{|ext| fn.end_with?(ext)} || Pathname(fn).extname.empty?)
         File.unlink fn
         puts "removed: #{fn}"
         next
