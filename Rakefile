@@ -82,7 +82,7 @@ task :unpack do
     FileUtils.rmtree("#{LATEST_DIR}/#{vname}")
   }
 
-  File.open("#{LOG_DIR}/unpack.log.#{Time.now.strftime '%FT%T%:z'}", "a") {|log|
+  File.open("#{LOG_DIR}/unpack.log.#{Time.now.strftime '%Y%m%dT%H%M%S%z'}", "a") {|log|
     (latest_vnames - already_unpacked).each {|vname|
       puts "unpack: #{vname}"
       system GEM_COMMAND, 'unpack', "#{MIRROR_DIR}/gems/#{vname}.gem", :chdir => LATEST_DIR, :out => log
