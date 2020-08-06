@@ -101,7 +101,7 @@ task :index => :index_codesearch
 INDEX_COMMAND = 'zoekt-index'
 task :index_codesearch do
   FileUtils.rm_rf("zoekt-index")
-  sh INDEX_COMMAND, "-index_dir", "zoekt-index", LATEST_DIR
+  sh INDEX_COMMAND, "-index", "zoekt-index", LATEST_DIR
 end
 
 task :index_milkode do
