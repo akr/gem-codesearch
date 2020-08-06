@@ -9,9 +9,9 @@ It will be larger in future.
 
 ## Usage
 
-This creates "latest-gem" package in codesearch index.
+This creates "latest-gem" package in zoekt index.
 
-    % sudo aptitude install codesearch  # https://github.com/google/codesearch
+    # Install zoekt from GitHub repository: https://github.com/google/zoekt 
     % gem install gem-codesearch
     % mkdir $HOME/gem-codesearch        # Make a some directory
     % cd $HOME/gem-codesearch
@@ -22,7 +22,10 @@ try again to continue.
 
 After the index is created, enjoy code search.
 
-    % csearch sort_by
+    % zoekt -index_dir $HOME/gem-codesearch/zoekt-index sort_by
+
+You can search without `-index_dir` option after creating the symlink
+named `.zoekt` to HOME directory
 
 ## Usage without install
 
