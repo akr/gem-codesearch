@@ -26,7 +26,7 @@ BASE_DIR = ENV['GEM_CODESEARCH_DIR'] || Dir.pwd
 MIRROR_URL = ENV['GEM_CODESEARCH_URL'] || 'http://rubygems.org/'
 
 MIRROR_DIR = "#{BASE_DIR}/mirror"
-LATEST_DIR = "#{BASE_DIR}/latest-gem"
+LATEST_DIR = ENV['GEM_CODESEARCH_GEM_DIR'] || "#{BASE_DIR}/latest-gem"
 LOG_DIR = "#{BASE_DIR}/log"
 
 GEM_COMMAND = "#{RbConfig::CONFIG["bindir"]}/gem"
