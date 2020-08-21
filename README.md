@@ -36,7 +36,7 @@ named `.zoekt` to HOME directory
     % cd gem-codesearch
     % rake all >& setup.log             # It may take several days or more
 
-## Use milkode instead of codesesarch
+## Use milkode instead of zoekt
 
     % gem install milkode
     % milk init --default               # If you use milkode first time
