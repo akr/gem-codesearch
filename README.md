@@ -42,6 +42,20 @@ named `.zoekt` to HOME directory
     % milk init --default               # If you use milkode first time
     % rake mirror unpack index_milkode >& setup.log
 
+## Use codesearch instead of zoekt
+
+    $ rake mirror unpack index_csearch
+
+This creates a set of indexes for csearch in gem-codesearch/csearchindexes.
+Use a wrapper shell script to call csearch:
+
+```
+#!/bin/sh
+
+export CSEARCHINDEX
+for CSEARCHINDEX in /path/to/gem-codesearch/csearchindexes/?; do csearch "$@"; done
+```
+
 ## Links
 
 - https://github.com/akr/gem-codesearch
