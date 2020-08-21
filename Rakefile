@@ -12,9 +12,11 @@ Usage:
   rake all              # mirror, unpack, index
   rake mirror
   rake unpack
-  rake index            # same as index_codesearch
-  rake index_codesearch
+  rake index            # same as index_zoekt
+  rake index_zoekt
+  rake index_codesearch # same as index_zoekt (for compatibility)
   rake index_milkode
+  rake index_csearch
 End
 end
 
@@ -96,12 +98,24 @@ task :unpack do
 
 end
 
-task :index => :index_codesearch
+task :index => :index_zoekt
+task :index_codesearch => :index_zoekt # for compatibility
 
 INDEX_COMMAND = 'zoekt-index'
-task :index_codesearch do
+task :index_zoekt do
   FileUtils.rm_rf("zoekt-index")
   sh INDEX_COMMAND, "-index", "zoekt-index", LATEST_DIR
+end
+
+CSEARCH_COMMAND = 'cindex'
+task :index_csearch do
+  dir = File.join(BASE_DIR, "csearchindexes")
+  FileUtils.mkpath dir
+  [nil, *?a..?z].each do |prefix|
+    env = { "CSEARCHINDEX" => File.join(dir, prefix || '_') }
+    paths = Dir.glob(File.join(LATEST_DIR, ((prefix || '[ -_]') + "*"))).sort
+    sh env, CSEARCH_COMMAND, "-reset", *paths
+  end
 end
 
 task :index_milkode do
