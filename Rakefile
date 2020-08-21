@@ -1,6 +1,8 @@
 require 'rbconfig'
 require 'fileutils'
 require 'find'
+require 'open3'
+require 'pathname'
 require 'pp'
 
 task :default => :help
@@ -96,6 +98,15 @@ task :unpack do
     }
   }
 
+  File.open("payload.txt") do |f|
+    f.each_line do |i|
+      i.chomp!
+      if File.exist? i
+        File.unlink "#{LATEST_DIR}/#{i}"
+        puts "removed: #{i}"
+      end
+    end
+  end
 end
 
 task :index => :index_zoekt
@@ -147,13 +158,25 @@ def fix_permission(dir)
   }
 end
 
+RB_EXT_NAMES = %w(.rb .ru .gemspec .rake .cmd .gemfile .thor)
+C_EXT_NAMES = %w(.c .h .cpp .hpp)
 def clean_files(dir)
   return unless File.exist? dir
   Find.find(dir) {|fn|
     st = File.lstat(fn)
     if st.file?
-      if fn.end_with?('.ri')
+      if C_EXT_NAMES.any?{|ext| fn.end_with?(ext)}
+        next
+      elsif !(RB_EXT_NAMES.any?{|ext| fn.end_with?(ext)} || Pathname(fn).extname.empty?)
         File.unlink fn
+        puts "removed: #{fn}"
+        next
+      else
+        _, _, _, wait_thr = *Open3.popen3("ruby -c #{fn}")
+        if wait_thr.value.exitstatus != 0
+          File.unlink fn
+          puts "removed: #{fn}"
+        end
       end
     end
   }
