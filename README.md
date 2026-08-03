@@ -60,6 +60,14 @@ The path is relative to the unpack directory.
 Set GEM_CODESEARCH_GEM_DIR if the unpack directory is not
 GEM_CODESEARCH_DIR/latest-gem.
 
+The --summary option prints one line per gem instead of individual
+hits, sorted by the number of matched lines:
+
+    YYYY-MM-DD GEMNAME-VERSION COUNT FIRST_PATH
+
+Other arguments are passed to csearch as usual.  With csearch's -l
+option COUNT means the number of files instead of matched lines.
+
 ## Links
 
 - https://github.com/akr/gem-codesearch

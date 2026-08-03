@@ -13,6 +13,35 @@ PREFIX = LATEST_DIR.chomp("/") + "/"
 
 GemReleaseDates = {}
 
+def release_date(vname)
+  unless GemReleaseDates[vname]
+    path = "#{BASE_DIR}/mirror/gems/#{vname}.gem"
+    metadata = nil
+    File.open path, Gem.binary_mode do |io|
+      tar = Gem::Package::TarReader.new io
+      tar.each_entry do |entry|
+        case entry.full_name
+        when "metadata" then
+          metadata = entry.read
+        when "metadata.gz" then
+          begin
+            gz = Zlib::GzipReader.new(entry)
+            metadata = gz.read
+            gz.close
+          rescue Zlib::GzipFile::Error
+            metadata = "date: XXXX-XX-XX"
+          end
+        end
+      end
+    end
+    GemReleaseDates[vname] = metadata[/^date: ([\dX]+-[\dX]+-[\dX]+)/, 1]
+  end
+  GemReleaseDates[vname]
+end
+
+summary_mode = ARGV.delete("--summary")
+summary = {}
+
 indexes = Dir.glob("#{BASE_DIR}/csearchindexes/?").sort
 indexes.each do |index|
   r, w = IO.pipe
@@ -20,31 +49,20 @@ indexes.each do |index|
   w.close
   while line = r.gets
     line = line[PREFIX.size..-1] if line.start_with?(PREFIX)
-    vname = line.split(":", 2)[0].split("/", 2)[0]
-    unless GemReleaseDates[vname]
-      path = "#{BASE_DIR}/mirror/gems/#{vname}.gem"
-      metadata = nil
-      File.open path, Gem.binary_mode do |io|
-        tar = Gem::Package::TarReader.new io
-        tar.each_entry do |entry|
-          case entry.full_name
-          when "metadata" then
-            metadata = entry.read
-          when "metadata.gz" then
-            begin
-              gz = Zlib::GzipReader.new(entry)
-              metadata = gz.read
-              gz.close
-            rescue Zlib::GzipFile::Error
-              metadata = "date: XXXX-XX-XX"
-            end
-          end
-        end
-      end
-      GemReleaseDates[vname] = metadata[/^date: ([\dX]+-[\dX]+-[\dX]+)/, 1]
+    vname, relpath = line.chomp.split(":", 2)[0].split("/", 2)
+    if summary_mode
+      s = summary[vname] ||= [0, relpath]
+      s[0] += 1
+    else
+      print release_date(vname), " ", line
     end
-    print GemReleaseDates[vname], " ", line
   end
   r.close
   Process.wait(pid)
+end
+
+if summary_mode
+  summary.sort_by {|vname, (count, _)| [-count, vname] }.each {|vname, (count, relpath)|
+    puts "#{release_date(vname)} #{vname} #{count} #{relpath}"
+  }
 end
