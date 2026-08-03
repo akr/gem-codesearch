@@ -68,6 +68,20 @@ hits, sorted by the number of matched lines:
 Other arguments are passed to csearch as usual.  With csearch's -l
 option COUNT means the number of files instead of matched lines.
 
+## File filtering
+
+The corpus is intended for searching Ruby code, so the unpack task keeps
+only Ruby-related files and removes everything else (other languages,
+docs, images, archives and binaries).  Kept files are: Ruby sources and
+DSLs (.rb, .rake, .gemspec, .ru, .thor, .gemfile, .rbs, .rbi and
+well-known names such as Rakefile, Gemfile and Gemfile.lock), C/C++
+sources of native extensions (.c, .h, .cpp, .hpp, .cc, .hh, .cxx, .hxx,
+.y, .rl), templates that embed Ruby (.erb, .rhtml, .haml, .slim,
+.builder, .jbuilder, .rabl, .arb, .mab), and extensionless files whose
+shebang line mentions ruby.
+
+Use "rake clean_files" to apply the policy to already unpacked gems.
+
 ## Links
 
 - https://github.com/akr/gem-codesearch
