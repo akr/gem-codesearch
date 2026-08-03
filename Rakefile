@@ -17,6 +17,7 @@ Usage:
   rake index_codesearch # same as index_zoekt (for compatibility)
   rake index_milkode
   rake index_csearch
+  rake clean_vendored   # remove vendored files from unpacked gems
 End
 end
 
@@ -93,9 +94,20 @@ task :unpack do
       end
       fix_permission("#{LATEST_DIR}/#{vname}")
       clean_files("#{LATEST_DIR}/#{vname}")
+      remove_vendored_dirs("#{LATEST_DIR}/#{vname}", log)
     }
   }
 
+end
+
+task :clean_vendored do
+  FileUtils.mkpath LOG_DIR
+  File.open("#{LOG_DIR}/clean_vendored.log.#{Time.now.strftime '%Y%m%dT%H%M%S%z'}", "a") {|log|
+    vnames = Dir.entries(LATEST_DIR) - %w[. ..]
+    vnames.sort.each {|vname|
+      remove_vendored_dirs("#{LATEST_DIR}/#{vname}", log)
+    }
+  }
 end
 
 task :index => :index_zoekt
@@ -143,6 +155,43 @@ def fix_permission(dir)
       if !st.readable? || !st.executable?
         File.chmod(0755, fn)
       end
+    end
+  }
+end
+
+# A directory named "gems" or "specifications" may be the gem's own code
+# (e.g. Narnach-gems-0.3.0/lib/gems), so the name alone is not enough to
+# judge it as a copy of a gem installation tree.
+def vname_like?(name)
+  /\A[A-Za-z0-9._-]+-\d+(\.\d+)*/ =~ name ? true : false
+end
+
+def vendored_dir?(dir)
+  entries = Dir.entries(dir) - %w[. ..]
+  case File.basename(dir)
+  when "vendor", "node_modules", ".bundle"
+    true
+  when "gems"
+    !entries.empty? && entries.all? {|e|
+      File.directory?("#{dir}/#{e}") && vname_like?(e)
+    }
+  when "specifications"
+    !entries.empty? && entries.all? {|e|
+      e == "default" || (/\.gemspec\z/ =~ e && vname_like?(e))
+    }
+  else
+    false
+  end
+end
+
+def remove_vendored_dirs(dir, log)
+  return unless File.exist? dir
+  Find.find(dir) {|fn|
+    next unless File.lstat(fn).directory?
+    if vendored_dir?(fn)
+      log.puts "remove vendored: #{fn}"
+      FileUtils.rmtree(fn)
+      Find.prune
     end
   }
 end

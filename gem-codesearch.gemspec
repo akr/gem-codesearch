@@ -23,6 +23,7 @@ Gem::Specification.new do |s|
   s.test_files = %w[
     test/test_all.rb
     test/test_bin.rb
+    test/test_clean_vendored.rb
     test/test_search.rb
   ]
   s.homepage = 'https://github.com/akr/gem-codesearch'
