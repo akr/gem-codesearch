@@ -47,14 +47,18 @@ named `.zoekt` to HOME directory
     $ rake mirror unpack index_csearch
 
 This creates a set of indexes for csearch in gem-codesearch/csearchindexes.
-Use a wrapper shell script to call csearch:
+Use the gem-codesearch command to search them:
 
-```
-#!/bin/sh
+    % GEM_CODESEARCH_DIR=$HOME/gem-codesearch gem-codesearch PATTERN
 
-export CSEARCHINDEX
-for CSEARCHINDEX in /path/to/gem-codesearch/csearchindexes/?; do csearch "$@"; done
-```
+It runs csearch over all the indexes and prints each hit prefixed with
+the release date of the gem:
+
+    YYYY-MM-DD GEMNAME-VERSION/PATH:MATCHED_LINE
+
+The path is relative to the unpack directory.
+Set GEM_CODESEARCH_GEM_DIR if the unpack directory is not
+GEM_CODESEARCH_DIR/latest-gem.
 
 ## Links
 

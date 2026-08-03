@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby
+
+require "zlib"
+require "rubygems/package"
+
+BASE_DIR = ENV['GEM_CODESEARCH_DIR'] || Dir.pwd
+LATEST_DIR = ENV['GEM_CODESEARCH_GEM_DIR'] || "#{BASE_DIR}/latest-gem"
+CSEARCH_COMMAND = ENV['GEM_CODESEARCH_CSEARCH'] || 'csearch'
+
+# Paths in the index start with LATEST_DIR.  Strip it so that each hit
+# starts with "<gem>-<version>/".
+PREFIX = LATEST_DIR.chomp("/") + "/"
+
+GemReleaseDates = {}
+
+indexes = Dir.glob("#{BASE_DIR}/csearchindexes/?").sort
+indexes.each do |index|
+  r, w = IO.pipe
+  pid = spawn({ "CSEARCHINDEX" => index }, CSEARCH_COMMAND, *ARGV, out: w)
+  w.close
+  while line = r.gets
+    line = line[PREFIX.size..-1] if line.start_with?(PREFIX)
+    vname = line.split(":", 2)[0].split("/", 2)[0]
+    unless GemReleaseDates[vname]
+      path = "#{BASE_DIR}/mirror/gems/#{vname}.gem"
+      metadata = nil
+      File.open path, Gem.binary_mode do |io|
+        tar = Gem::Package::TarReader.new io
+        tar.each_entry do |entry|
+          case entry.full_name
+          when "metadata" then
+            metadata = entry.read
+          when "metadata.gz" then
+            begin
+              gz = Zlib::GzipReader.new(entry)
+              metadata = gz.read
+              gz.close
+            rescue Zlib::GzipFile::Error
+              metadata = "date: XXXX-XX-XX"
+            end
+          end
+        end
+      end
+      GemReleaseDates[vname] = metadata[/^date: ([\dX]+-[\dX]+-[\dX]+)/, 1]
+    end
+    print GemReleaseDates[vname], " ", line
+  end
+  r.close
+  Process.wait(pid)
+end

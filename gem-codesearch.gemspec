@@ -10,17 +10,20 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'builder', '~> 3.2', '>= 3.2.2'
   s.add_development_dependency 'test-unit', '~> 3.0', '>= 3.0.8'
   s.executables << 'gem-codesearch-setup'
+  s.executables << 'gem-codesearch'
   s.files = %w[
     .gitignore
     LICENSE
     README.md
     Rakefile
+    bin/gem-codesearch
     bin/gem-codesearch-setup
     gem-codesearch.gemspec
   ]
   s.test_files = %w[
     test/test_all.rb
     test/test_bin.rb
+    test/test_search.rb
   ]
   s.homepage = 'https://github.com/akr/gem-codesearch'
   s.license = 'MIT'
