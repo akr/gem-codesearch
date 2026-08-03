@@ -112,6 +112,18 @@ class TestCleanFiles < Test::Unit::TestCase
     assert(File.directory?("#{@latest}/foo-1.0"))
   end
 
+  def test_handles_invalid_utf8_filenames
+    begin
+      put_file "foo-1.0/lib/bad.\xffmd"
+    rescue Errno::EILSEQ, Errno::EINVAL, ArgumentError
+      omit "filesystem rejects invalid UTF-8 filenames"
+    end
+    put_file "foo-1.0/lib/foo.rb"
+    run_clean_files
+    assert(File.exist?("#{@latest}/foo-1.0/lib/foo.rb"))
+    assert_equal(["foo.rb"], Dir.children("#{@latest}/foo-1.0/lib"))
+  end
+
   def test_logs_removed_paths
     put_file "foo-1.0/app.js"
     run_clean_files

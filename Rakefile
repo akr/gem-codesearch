@@ -231,7 +231,9 @@ end
 def keep_file?(fn)
   base = File.basename(fn)
   return true if KEEP_BASENAMES.include?(base)
-  ext = File.extname(base).downcase
+  # Filenames may contain bytes that are not valid UTF-8, which makes
+  # String#downcase raise ArgumentError.  Downcase as binary instead.
+  ext = File.extname(base).b.downcase
   return KEEP_EXTS.include?(ext) unless ext.empty?
   ruby_shebang?(fn)
 end
