@@ -18,6 +18,7 @@ Usage:
   rake index_milkode
   rake index_csearch
   rake clean_vendored   # remove vendored files from unpacked gems
+  rake clean_files      # remove non-Ruby files from unpacked gems
 End
 end
 
@@ -93,7 +94,7 @@ task :unpack do
         puts "failed to unpack #{vname}"
       end
       fix_permission("#{LATEST_DIR}/#{vname}")
-      clean_files("#{LATEST_DIR}/#{vname}")
+      clean_files("#{LATEST_DIR}/#{vname}", log)
       remove_vendored_dirs("#{LATEST_DIR}/#{vname}", log)
     }
   }
@@ -106,6 +107,16 @@ task :clean_vendored do
     vnames = Dir.entries(LATEST_DIR) - %w[. ..]
     vnames.sort.each {|vname|
       remove_vendored_dirs("#{LATEST_DIR}/#{vname}", log)
+    }
+  }
+end
+
+task :clean_files do
+  FileUtils.mkpath LOG_DIR
+  File.open("#{LOG_DIR}/clean_files.log.#{Time.now.strftime '%Y%m%dT%H%M%S%z'}", "a") {|log|
+    vnames = Dir.entries(LATEST_DIR) - %w[. ..]
+    vnames.sort.each {|vname|
+      clean_files("#{LATEST_DIR}/#{vname}", log)
     }
   }
 end
@@ -196,14 +207,56 @@ def remove_vendored_dirs(dir, log)
   }
 end
 
-def clean_files(dir)
+# The corpus exists to search Ruby code (including the C code of native
+# extensions and Ruby embedded in templates), so keep files by allowlist
+# and remove everything else: other languages, docs, images, archives and
+# binaries.
+KEEP_EXTS = %w[
+  .rb .rake .gemspec .ru .thor .gemfile .rbs .rbi
+  .c .h .cpp .hpp .cc .hh .cxx .hxx .y .rl
+  .erb .rhtml .haml .slim .builder .jbuilder .rabl .arb .mab
+]
+KEEP_BASENAMES = %w[
+  Rakefile Gemfile Gemfile.lock Guardfile Capfile Vagrantfile Berksfile
+  Thorfile Appraisals Dangerfile Fastfile Podfile Steepfile
+]
+
+def ruby_shebang?(fn)
+  head = File.open(fn, "rb") {|f| f.gets("\n", 1024) }
+  head ? /\A#!.*ruby/.match?(head) : false
+rescue SystemCallError
+  false
+end
+
+def keep_file?(fn)
+  base = File.basename(fn)
+  return true if KEEP_BASENAMES.include?(base)
+  ext = File.extname(base).downcase
+  return KEEP_EXTS.include?(ext) unless ext.empty?
+  ruby_shebang?(fn)
+end
+
+def clean_files(dir, log)
   return unless File.exist? dir
+  dirs = []
   Find.find(dir) {|fn|
     st = File.lstat(fn)
-    if st.file?
-      if fn.end_with?('.ri')
+    if st.directory?
+      dirs << fn
+    elsif st.file?
+      if !keep_file?(fn)
+        log.puts "remove file: #{fn}"
         File.unlink fn
       end
+    else
+      # symlinks (possibly dangling after cleanup), sockets, etc.
+      log.puts "remove file: #{fn}"
+      File.unlink fn
     end
+  }
+  # Remove directories emptied by the cleanup, but keep the gem's top
+  # directory itself so the unpack task does not unpack the gem again.
+  dirs.drop(1).reverse_each {|d|
+    Dir.rmdir(d) if Dir.empty?(d)
   }
 end
