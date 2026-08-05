@@ -141,6 +141,26 @@ End
     assert_include(result["content"][0]["text"], "showing 1 of 3 lines")
   end
 
+  def test_search_file_pattern_anchor_rewritten
+    write_csearch(<<"End")
+#!/bin/sh
+echo "$@" > "#{@workdir}/args.txt"
+echo "#{@workdir}/latest-gem/foo-1.0/lib/a.rb:def bar"
+End
+    call_search({ pattern: "bar", file_pattern: "^foo-1.0/" })
+    expected = "^" + Regexp.escape("#{@workdir}/latest-gem/") + "foo-1.0/"
+    assert_equal("-f #{expected} bar\n", File.read("#{@workdir}/args.txt"))
+  end
+
+  def test_search_file_pattern_unanchored_passed_through
+    write_csearch(<<"End")
+#!/bin/sh
+echo "$@" > "#{@workdir}/args.txt"
+End
+    call_search({ pattern: "bar", file_pattern: "lib/" })
+    assert_equal("-f lib/ bar\n", File.read("#{@workdir}/args.txt"))
+  end
+
   def test_search_no_matches
     write_csearch("#!/bin/sh\nexit 1\n")
     result = call_search({ pattern: "bar" })

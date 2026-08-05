@@ -17,6 +17,13 @@ module GemCodesearch
     File.expand_path(ENV["GEM_CODESEARCH_GEM_DIR"] || "#{base}/latest-gem")
   end
 
+  # The prefix of the paths recorded in the csearch indexes, computed the
+  # same way as bin/gem-codesearch (no expand_path).
+  def self.index_prefix
+    base = ENV["GEM_CODESEARCH_DIR"] || Dir.pwd
+    (ENV["GEM_CODESEARCH_GEM_DIR"] || "#{base}/latest-gem").chomp("/") + "/"
+  end
+
   def self.max_lines
     (ENV["GEM_CODESEARCH_MCP_MAX_LINES"] || DEFAULT_MAX_LINES).to_i
   end
@@ -67,7 +74,7 @@ module GemCodesearch
         },
         file_pattern: {
           type: "string",
-          description: "only report files whose path matches this regular expression",
+          description: "only report files whose path matches this regular expression; a leading ^ anchors at the GEMNAME-VERSION/ start of the reported paths",
         },
         ignore_case: {
           type: "boolean",
@@ -90,7 +97,15 @@ module GemCodesearch
         argv = []
         argv << "--summary" if summary
         argv << "-i" if ignore_case
-        argv.push("-f", file_pattern) if file_pattern
+        if file_pattern
+          # csearch -f matches the full indexed path, which carries the
+          # unpack-directory prefix that the reported paths do not.  Make a
+          # leading ^ anchor mean the start of the reported paths.
+          if file_pattern.start_with?("^")
+            file_pattern = "^" + Regexp.escape(GemCodesearch.index_prefix) + file_pattern[1..-1]
+          end
+          argv.push("-f", file_pattern)
+        end
         argv << pattern
 
         cap = GemCodesearch.max_lines

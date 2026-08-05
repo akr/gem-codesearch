@@ -111,8 +111,9 @@ route only its own virtual host.
 
 The server exposes three tools.  `search` runs the gem-codesearch
 command described above.  Arguments: `pattern` (required RE2 regexp),
-`file_pattern` (csearch -f), `ignore_case` (csearch -i), `summary`
-(--summary) and `max_lines`.  Each search is killed after
+`file_pattern` (csearch -f; a leading `^` anchors at the
+GEMNAME-VERSION/ start of the reported paths), `ignore_case`
+(csearch -i), `summary` (--summary) and `max_lines`.  Each search is killed after
 GEM_CODESEARCH_MCP_TIMEOUT seconds (default 30).  `read_file` returns
 a file from the unpacked corpus with line numbers, addressed by the
 "GEMNAME-VERSION/PATH" paths that `search` reports, optionally limited
