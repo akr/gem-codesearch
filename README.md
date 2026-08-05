@@ -82,6 +82,46 @@ shebang line mentions ruby.
 
 Use "rake clean_files" to apply the policy to already unpacked gems.
 
+## MCP server
+
+The csearch indexes can be exposed to MCP clients over the Streamable
+HTTP transport.  This repository provides only a Rack application that
+requires Bearer token authentication.  It serves plain HTTP and does
+not handle TLS.  Run it behind an HTTPS reverse proxy (nginx, Caddy,
+etc.) that terminates TLS.  The reverse proxy configuration,
+certificates and service management are out of scope for this
+repository.
+
+The application needs the mcp and rack gems and a Rack server.
+`StreamableHTTPTransport` keeps no cross-request state here (stateless
+mode), but keep the deployment simple with a single process bound to
+localhost:
+
+    % gem install mcp rack puma
+    % cd $HOME/gem-codesearch-src   # checkout of this repository
+    % GEM_CODESEARCH_DIR=$HOME/gem-codesearch \
+      GEM_CODESEARCH_MCP_TOKEN=SECRET \
+      puma -b tcp://127.0.0.1:9292 config.ru
+
+Every request must carry `Authorization: Bearer SECRET`; anything else
+gets 401.  The server refuses to boot without
+GEM_CODESEARCH_MCP_TOKEN.  Host/Origin validation is disabled in the
+Rack application because the reverse proxy in front is expected to
+route only its own virtual host.
+
+The server exposes a single `search` tool which runs the
+gem-codesearch command described above.  Arguments: `pattern`
+(required RE2 regexp), `file_pattern` (csearch -f), `ignore_case`
+(csearch -i), `summary` (--summary) and `max_lines`.  Each search is
+killed after GEM_CODESEARCH_MCP_TIMEOUT seconds (default 30) and the
+output is capped at GEM_CODESEARCH_MCP_MAX_LINES lines (default 200,
+also an upper bound for `max_lines`).
+
+Register it in Claude Code with:
+
+    % claude mcp add --transport http gem-codesearch \
+        https://HOST/ --header "Authorization: Bearer SECRET"
+
 ## Links
 
 - https://github.com/akr/gem-codesearch
