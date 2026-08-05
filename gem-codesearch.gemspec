@@ -9,6 +9,8 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'rake', '~> 10.4', '>= 10.4.2'
   s.add_development_dependency 'builder', '~> 3.2', '>= 3.2.2'
   s.add_development_dependency 'test-unit', '~> 3.0', '>= 3.0.8'
+  s.add_development_dependency 'mcp', '~> 1.1'
+  s.add_development_dependency 'rack', '~> 3.0'
   s.executables << 'gem-codesearch-setup'
   s.executables << 'gem-codesearch'
   s.files = %w[
@@ -18,12 +20,15 @@ Gem::Specification.new do |s|
     Rakefile
     bin/gem-codesearch
     bin/gem-codesearch-setup
+    config.ru
     gem-codesearch.gemspec
+    lib/gem_codesearch/mcp_app.rb
   ]
   s.test_files = %w[
     test/test_all.rb
     test/test_bin.rb
     test/test_clean_vendored.rb
+    test/test_mcp_app.rb
     test/test_search.rb
   ]
   s.homepage = 'https://github.com/akr/gem-codesearch'
