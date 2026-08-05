@@ -24,6 +24,7 @@ echo "#{@workdir}/latest-gem/foo-1.0/lib/c.rb:bar the third"
 End
     FileUtils.mkpath "#{@workdir}/latest-gem/foo-1.0/lib"
     File.write("#{@workdir}/latest-gem/foo-1.0/lib/a.rb", (1..5).map {|n| "l#{n}\n" }.join)
+    File.write("#{@workdir}/latest-gem/foo-1.0/foo.gemspec", "spec\n")
     File.write("#{@workdir}/outside.txt", "secret\n")
     @saved_env = {}
     set_env('GEM_CODESEARCH_DIR', @workdir)
@@ -105,9 +106,10 @@ End
     res = post_json({ jsonrpc: "2.0", id: 1, method: "tools/list" })
     assert_equal(200, res.status)
     tools = JSON.parse(res.body)["result"]["tools"]
-    assert_equal(["search", "read_file"], tools.map {|t| t["name"] })
+    assert_equal(["search", "read_file", "list_files"], tools.map {|t| t["name"] })
     assert_equal(["pattern"], tools[0]["inputSchema"]["required"])
     assert_equal(["path"], tools[1]["inputSchema"]["required"])
+    assert_equal(["path"], tools[2]["inputSchema"]["required"])
   end
 
   def test_search
@@ -200,6 +202,46 @@ End
   def test_read_file_symlink_escape
     File.symlink("#{@workdir}/outside.txt", "#{@workdir}/latest-gem/foo-1.0/link.rb")
     result = call_tool("read_file", { path: "foo-1.0/link.rb" })
+    assert_equal(true, result["isError"])
+    assert_include(result["content"][0]["text"], "outside the corpus")
+  end
+
+  def test_list_files
+    result = call_tool("list_files", { path: "foo-1.0" })
+    assert_equal(false, result["isError"])
+    assert_equal("foo.gemspec\nlib/a.rb\n", result["content"][0]["text"])
+  end
+
+  def test_list_files_subdirectory
+    result = call_tool("list_files", { path: "foo-1.0/lib" })
+    assert_equal("a.rb\n", result["content"][0]["text"])
+  end
+
+  def test_list_files_capped_by_server
+    set_env('GEM_CODESEARCH_MCP_MAX_LINES', "1")
+    result = call_tool("list_files", { path: "foo-1.0" })
+    text = result["content"][0]["text"]
+    assert_include(text, "foo.gemspec\n")
+    assert_not_include(text, "lib/a.rb")
+    assert_include(text, "showing 1 of 2 files")
+  end
+
+  def test_list_files_missing
+    result = call_tool("list_files", { path: "nonexistent-1.0" })
+    assert_equal(true, result["isError"])
+    assert_include(result["content"][0]["text"], "no such directory")
+  end
+
+  def test_list_files_traversal
+    result = call_tool("list_files", { path: ".." })
+    assert_equal(true, result["isError"])
+    assert_include(result["content"][0]["text"], "outside the corpus")
+  end
+
+  def test_list_files_symlink_escape
+    FileUtils.mkpath "#{@workdir}/elsewhere"
+    File.symlink("#{@workdir}/elsewhere", "#{@workdir}/latest-gem/foo-1.0/vendor")
+    result = call_tool("list_files", { path: "foo-1.0/vendor" })
     assert_equal(true, result["isError"])
     assert_include(result["content"][0]["text"], "outside the corpus")
   end

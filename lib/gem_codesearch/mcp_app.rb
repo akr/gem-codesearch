@@ -198,6 +198,63 @@ module GemCodesearch
     end
   end
 
+  class ListFilesTool < MCP::Tool
+    tool_name "list_files"
+    description <<~DESC
+      List the files under a directory of the unpacked gem corpus.  Pass a
+      "GEMNAME-VERSION" directory as reported by the search tool, e.g.
+      "rack-3.2.6", optionally with a subdirectory such as
+      "rack-3.2.6/lib".  Paths in the result are relative to that
+      directory.
+    DESC
+    input_schema(
+      properties: {
+        path: {
+          type: "string",
+          description: "directory to list, e.g. rack-3.2.6 or rack-3.2.6/lib",
+        },
+      },
+      required: ["path"],
+    )
+
+    class << self
+      def call(path:, server_context: nil)
+        base = GemCodesearch.gem_dir
+        full = File.expand_path(path, base)
+        unless full.start_with?(base + "/")
+          return error_response("path is outside the corpus: #{path}")
+        end
+        unless File.directory?(full)
+          return error_response("no such directory: #{path}")
+        end
+        full = File.realpath(full)
+        unless full.start_with?(File.realpath(base) + "/")
+          return error_response("path is outside the corpus: #{path}")
+        end
+
+        files = Dir.glob("**/*", base: full).select {|f| File.file?(File.join(full, f)) }.sort
+        return text_response("(no files)") if files.empty?
+
+        cap = GemCodesearch.max_lines
+        text = files.first(cap).map {|f| f + "\n" }.join
+        if files.size > cap
+          text += "(truncated: showing #{cap} of #{files.size} files; list a subdirectory)"
+        end
+        text_response(text)
+      end
+
+      private
+
+      def text_response(text)
+        MCP::Tool::Response.new([{ type: "text", text: text }])
+      end
+
+      def error_response(text)
+        MCP::Tool::Response.new([{ type: "text", text: text }], error: true)
+      end
+    end
+  end
+
   class TokenAuth
     def initialize(app, token)
       @app = app
@@ -216,7 +273,7 @@ module GemCodesearch
 
   def self.mcp_app(token:)
     raise ArgumentError, "token must not be empty" if token.nil? || token.empty?
-    server = MCP::Server.new(name: "gem-codesearch", tools: [SearchTool, ReadFileTool])
+    server = MCP::Server.new(name: "gem-codesearch", tools: [SearchTool, ReadFileTool, ListFilesTool])
     # Host/Origin validation is left to the HTTPS reverse proxy in front of
     # this app; the Bearer token protects direct access.
     transport = MCP::Server::Transports::StreamableHTTPTransport.new(
