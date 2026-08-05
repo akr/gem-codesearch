@@ -12,6 +12,15 @@ module GemCodesearch
     ENV["GEM_CODESEARCH_COMMAND"] || File.expand_path("../../bin/gem-codesearch", __dir__)
   end
 
+  def self.gem_dir
+    base = ENV["GEM_CODESEARCH_DIR"] || Dir.pwd
+    File.expand_path(ENV["GEM_CODESEARCH_GEM_DIR"] || "#{base}/latest-gem")
+  end
+
+  def self.max_lines
+    (ENV["GEM_CODESEARCH_MCP_MAX_LINES"] || DEFAULT_MAX_LINES).to_i
+  end
+
   # Runs bin/gem-codesearch and returns [output, total_lines, timed_out, status].
   # The process group is killed on timeout so csearch children do not survive.
   def self.run_search(argv, timeout:, max_lines:)
@@ -84,7 +93,7 @@ module GemCodesearch
         argv.push("-f", file_pattern) if file_pattern
         argv << pattern
 
-        cap = (ENV["GEM_CODESEARCH_MCP_MAX_LINES"] || DEFAULT_MAX_LINES).to_i
+        cap = GemCodesearch.max_lines
         limit = max_lines && max_lines > 0 ? [max_lines, cap].min : cap
         timeout = (ENV["GEM_CODESEARCH_MCP_TIMEOUT"] || DEFAULT_TIMEOUT).to_f
 
@@ -101,6 +110,78 @@ module GemCodesearch
         text = output
         if total > limit
           text += "\n(truncated: showing #{limit} of #{total} lines; refine the pattern, use file_pattern, or set summary:true)"
+        end
+        text_response(text)
+      end
+
+      private
+
+      def text_response(text)
+        MCP::Tool::Response.new([{ type: "text", text: text }])
+      end
+
+      def error_response(text)
+        MCP::Tool::Response.new([{ type: "text", text: text }], error: true)
+      end
+    end
+  end
+
+  class ReadFileTool < MCP::Tool
+    tool_name "read_file"
+    description <<~DESC
+      Read a file from the unpacked gem corpus.  Use the path exactly as
+      reported by the search tool: "GEMNAME-VERSION/PATH", e.g.
+      "rack-3.2.6/lib/rack.rb".  Each returned line is prefixed with its
+      line number.
+    DESC
+    input_schema(
+      properties: {
+        path: {
+          type: "string",
+          description: "file path as reported by search, e.g. rack-3.2.6/lib/rack.rb",
+        },
+        start_line: {
+          type: "integer",
+          description: "first line to return (1-based, default 1)",
+        },
+        end_line: {
+          type: "integer",
+          description: "last line to return (inclusive, default: end of file, capped by the server)",
+        },
+      },
+      required: ["path"],
+    )
+
+    class << self
+      def call(path:, start_line: nil, end_line: nil, server_context: nil)
+        base = GemCodesearch.gem_dir
+        full = File.expand_path(path, base)
+        unless full.start_with?(base + "/")
+          return error_response("path is outside the corpus: #{path}")
+        end
+        unless File.file?(full)
+          return error_response("no such file: #{path}")
+        end
+        full = File.realpath(full)
+        unless full.start_with?(File.realpath(base) + "/")
+          return error_response("path is outside the corpus: #{path}")
+        end
+
+        lines = File.readlines(full)
+        return text_response("(empty file)") if lines.empty?
+
+        first = start_line && start_line > 0 ? start_line : 1
+        return error_response("start_line #{first} is beyond the end of the file (#{lines.size} lines)") if first > lines.size
+        last = end_line && end_line >= first ? [end_line, lines.size].min : lines.size
+
+        cap = GemCodesearch.max_lines
+        truncated = last - first + 1 > cap
+        last = first + cap - 1 if truncated
+
+        width = last.to_s.size
+        text = (first..last).map {|n| "%*d: %s\n" % [width, n, lines[n - 1].chomp.scrub] }.join
+        if truncated
+          text += "(truncated: showing lines #{first}-#{last} of #{lines.size}; request a narrower range)"
         end
         text_response(text)
       end
@@ -135,7 +216,7 @@ module GemCodesearch
 
   def self.mcp_app(token:)
     raise ArgumentError, "token must not be empty" if token.nil? || token.empty?
-    server = MCP::Server.new(name: "gem-codesearch", tools: [SearchTool])
+    server = MCP::Server.new(name: "gem-codesearch", tools: [SearchTool, ReadFileTool])
     # Host/Origin validation is left to the HTTPS reverse proxy in front of
     # this app; the Bearer token protects direct access.
     transport = MCP::Server::Transports::StreamableHTTPTransport.new(

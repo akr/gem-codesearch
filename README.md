@@ -109,13 +109,17 @@ GEM_CODESEARCH_MCP_TOKEN.  Host/Origin validation is disabled in the
 Rack application because the reverse proxy in front is expected to
 route only its own virtual host.
 
-The server exposes a single `search` tool which runs the
-gem-codesearch command described above.  Arguments: `pattern`
-(required RE2 regexp), `file_pattern` (csearch -f), `ignore_case`
-(csearch -i), `summary` (--summary) and `max_lines`.  Each search is
-killed after GEM_CODESEARCH_MCP_TIMEOUT seconds (default 30) and the
-output is capped at GEM_CODESEARCH_MCP_MAX_LINES lines (default 200,
-also an upper bound for `max_lines`).
+The server exposes two tools.  `search` runs the gem-codesearch
+command described above.  Arguments: `pattern` (required RE2 regexp),
+`file_pattern` (csearch -f), `ignore_case` (csearch -i), `summary`
+(--summary) and `max_lines`.  Each search is killed after
+GEM_CODESEARCH_MCP_TIMEOUT seconds (default 30).  `read_file` returns
+a file from the unpacked corpus with line numbers, addressed by the
+"GEMNAME-VERSION/PATH" paths that `search` reports, optionally limited
+to a `start_line`/`end_line` range.  Paths are confined to the unpack
+directory (symlinks resolved).  Output of both tools is capped at
+GEM_CODESEARCH_MCP_MAX_LINES lines (default 200, also an upper bound
+for `max_lines`).
 
 Register it in Claude Code with:
 
